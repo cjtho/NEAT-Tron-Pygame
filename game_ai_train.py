@@ -43,6 +43,7 @@ class GameAITraining(Screen):
         self.particle_effects = Particles()
 
         self.run_neat()
+        exit()
 
     def run_neat(self):
         checkpoint_path = os.path.join(self.checkpoint_dir, "neat-checkpoint-")
@@ -95,9 +96,9 @@ class GameAITraining(Screen):
             return False  # Return False if the genome hasn't been evaluated
 
         num = self.generations - self.curr_generation
-        return (random.randint(0, num) == num
-                or 1000 <= genome.fitness <= 1500
-                or self.curr_generation % 10 == 0)
+        return (random.randint(0, num) == num  # send more often at end
+                or 1000 <= genome.fitness <= 1500  # hurdle when getting too good
+                or self.curr_generation % 10 == 0)  # every now and then
 
     def eval_genomes(self, genomes, config):
         for i, (_, genome) in enumerate(genomes):
@@ -121,7 +122,9 @@ class GameAITraining(Screen):
         player_group, game_logic = self.setup_game()
         net_player1 = NeuralNetAI(current_genome, config, player_group[1], init_fitness=True)
 
-        for i, (_, opponent_genome) in enumerate(genomes[index + 1:]):
+        sample_size = int(0.2 * len(genomes))  # Ensures not to exceed the list size
+        sampled_genomes = random.sample(genomes, sample_size)
+        for _, opponent_genome in sampled_genomes:
             net_player2 = NeuralNetAI(opponent_genome, config, player_group[2], init_fitness=True)
             self.simulate_competition(net_player1, net_player2, player_group, game_logic)
 
@@ -135,7 +138,7 @@ class GameAITraining(Screen):
     def setup_game(self):
         default_data = {1: {"head_colour": (255, 0, 0)}, 2: {"head_colour": (0, 0, 255)}}
         player_group = PlayerGroup(default_data if self.pregame_data is None else self.pregame_data["player_info"])
-        game_logic = GameLogic(player_group)
+        game_logic = GameLogic(player_group, training=True)
 
         self.init_dimensional_data(game_logic)
         return player_group, game_logic
@@ -170,6 +173,7 @@ class GameAITraining(Screen):
             return False
 
         if self.displaying and self.index == 0:
+            self.clock.tick(120)
             self.draw_game(player_group, game_logic)
             pygame.display.update()
 
@@ -179,6 +183,13 @@ class GameAITraining(Screen):
         self.clear_screen()
         self.draw_border()
         self.draw_all_players(player_group, game_logic)
+        self.draw_generation_text()
+
+    def draw_generation_text(self):
+        font = pygame.font.SysFont("Arial", 40)  # Create a font object
+        text = f"Generation: {self.curr_generation}"
+        text_surface = font.render(text, True, (255, 255, 255))  # White color
+        self.screen.blit(text_surface, (50, self.screen_height - 100))  # Position bottom left
 
     def clear_screen(self):
         """

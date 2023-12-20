@@ -3,13 +3,6 @@ import numpy as np
 
 
 class NeuralNetAI:
-    relative_direction_map = {
-        "up": {"left": "left", "right": "right"},
-        "down": {"left": "right", "right": "left"},
-        "left": {"left": "down", "right": "up"},
-        "right": {"left": "up", "right": "down"},
-    }
-
     absolute_direction_map = {
         "up": (-1, 0),
         "down": (1, 0),
@@ -38,31 +31,21 @@ class NeuralNetAI:
         self.update_player_direction(output)
 
     def update_player_direction(self, output):
-        # here we are going to be different
-        # we are going to say the AI has 3 options "left", "right" and "nothing"
         max_index = output.index(max(output))
         direction = self.output_to_direction(max_index)
         self.player.change_direction(direction)
 
-    def output_to_direction(self, index):
-        curr_dir = self.player.direction
-        relative_new_dir = None
-
-        if index == 0:
-            relative_new_dir = "left"
-        elif index == 1:
-            relative_new_dir = "right"
-
-        if relative_new_dir:
-            return self.relative_direction_map[curr_dir][relative_new_dir]
-        else:
-            return None  # do nothing
+    @staticmethod
+    def output_to_direction(index):
+        return ["up", "down", "left", "right"][index]
 
     def eval_fitness(self, player_group, game_logic):
         # Base survival reward
         survival_reward = 1
+        # Penalty for crashing into wall
+        wall_penalty = -10  # ffs please stop going into the wall
         # Penalty for crashing
-        crash_penalty = -3
+        crash_penalty = -1
         # Reward for eliminating an opponent
         elimination_reward = 2
 
@@ -78,6 +61,9 @@ class NeuralNetAI:
                 if other_player.head in self.player.path:
                     self.genome.fitness += elimination_reward
 
+        elif game_logic.hit_wall(self.player.head):
+            # Apply penalty for wall crashing
+            self.genome.fitness += wall_penalty
         else:
             # Apply penalty for crashing
             self.genome.fitness += crash_penalty
@@ -87,13 +73,34 @@ class NeuralNetAI:
         Improved method to get the game state.
         """
 
-        vision = self.get_grid_vision(game_logic, 7).flatten()
-        position = self.get_position(game_logic)
-        current_state = np.concatenate((vision, position))
+        consequences = self.get_consequences(self.player, player_group, game_logic)
+        position = self.get_position(self.player, game_logic)
+        tmp = list(player_group.values())
+        tmp.remove(self.player)
+        enemy_position = self.get_position(tmp.pop(), game_logic)
+        current_state = np.concatenate((consequences, position, enemy_position))
         return current_state
 
-    def get_position(self, game_logic):
-        return np.array([self.player.head[0] / game_logic.rows, self.player.head[1] / game_logic.cols])
+    def get_consequences(self, player, player_group, game_logic):
+        consequences = [1] * 4
+        for i in range(4):
+            direction = self.output_to_direction(i)
+            dr, dc = self.absolute_direction_map[direction]
+            r, c = player.head
+            nr, nc = r + dr, c + dc
+            # will they collide with player
+            for p in player_group.values():
+                if (nr, nc) in p.path:
+                    consequences[i] = 0
+                    break
+            # will they hit wall
+            if game_logic.hit_wall((nr, nc)):
+                consequences[i] = 0
+        return np.array(consequences)
+
+    @staticmethod
+    def get_position(player, game_logic):
+        return np.array([(player.head[0] - 1) / (game_logic.rows - 2), (player.head[1] - 1) / (game_logic.cols - 2)])
 
     def get_grid_vision(self, game_logic, size):
         """

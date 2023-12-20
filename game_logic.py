@@ -2,13 +2,14 @@ import random
 
 
 class GameLogic:
-    def __init__(self, player_group):
+    def __init__(self, player_group, training=False):
         self.player_group = player_group
+        self.training = training
+
         self.running = True
         self.iterations = 0
         self.rows = 65
         self.cols = 100
-
         self.place_players()
 
     def reset_game(self):
@@ -17,32 +18,40 @@ class GameLogic:
         self.place_players()
 
     def place_players(self):
-        num_players = len(self.player_group)
-        padding = min(self.rows, self.cols) // 10
-
-        if num_players == 1:
-            player_positions = [
-                (self.rows // 2, self.cols // 2)
-            ]
-        elif num_players == 2:
-            middle_row = self.rows // 2
-            player_positions = [
-                (middle_row, padding),
-                (middle_row, self.cols - padding - 1)
-            ]
-        elif num_players <= 4:
-            player_positions = [
-                (padding, padding),
-                (self.rows - padding - 1, padding),
-                (padding, self.cols - padding - 1),
-                (self.rows - padding - 1, self.cols - padding - 1)
-            ]
+        if self.training:
+            while True:
+                pos1 = (random.randint(0, self.rows), random.randint(0, self.cols))
+                pos2 = (random.randint(0, self.rows), random.randint(0, self.cols))
+                if not self.hit_wall(pos1) and not self.hit_wall(pos2) and pos1 != pos2:
+                    player_positions = [pos1, pos2]
+                    break
         else:
-            raise ValueError("This algorithm supports up to 4 players (exceeded).")
+            num_players = len(self.player_group)
+            padding = min(self.rows, self.cols) // 10
 
-        player_positions = player_positions[:num_players]
+            if num_players == 1:
+                player_positions = [
+                    (self.rows // 2, self.cols // 2)
+                ]
+            elif num_players == 2:
+                middle_row = self.rows // 2
+                player_positions = [
+                    (middle_row, padding),
+                    (middle_row, self.cols - padding - 1)
+                ]
+            elif num_players <= 4:
+                player_positions = [
+                    (padding, padding),
+                    (self.rows - padding - 1, padding),
+                    (padding, self.cols - padding - 1),
+                    (self.rows - padding - 1, self.cols - padding - 1)
+                ]
+            else:
+                raise ValueError("This algorithm supports up to 4 players (exceeded).")
 
-        if random.choice([False, False]):
+            player_positions = player_positions[:num_players]
+
+        if random.choice([False, False]):  # remnant
             player_positions = player_positions[::-1]
 
         for player_pos, player_id in zip(player_positions, self.player_group):
@@ -80,7 +89,7 @@ class GameLogic:
             self.player_group.determine_win_condition()
 
     def hit_wall(self, pos):
-        return not (0 < pos[0] < self.rows - 1 and 0 < pos[1] < self.cols - 1)
+        return pos[0] <= 0 or pos[0] >= self.rows - 1 or pos[1] <= 0 or pos[1] >= self.cols - 1
 
     def is_game_over(self):
         # at least two players remain

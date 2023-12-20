@@ -31,7 +31,7 @@ class Player:
         }
 
         self.rgb_to_name = self.setup_rgb_func()
-        self.name = self.rgb_to_name(head_colour)
+        self.name = ""#self.rgb_to_name(head_colour)
 
     @staticmethod
     def lighten_color(rgb, increase=0.1):
