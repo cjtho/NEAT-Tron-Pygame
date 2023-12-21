@@ -127,8 +127,8 @@ class Common(Screen):
         self.draw_end_screen()
         self.draw_disintegration()
         self.draw_boundary_flash()
-        if not self.boundary_flashes or (self.boundary_flashes and self.boundary_flashes[0].lifespan < 10):
-            # self.draw_godrays()
+        if not self.switch1:
+            self.draw_godrays()
             pass
         self.draw_border()
 
@@ -139,7 +139,12 @@ class Common(Screen):
                 pos = self.get_position_from_cell(cell)
                 if self.game_logic.hit_wall(player.head):
                     self.boundary_flashes.append(Flash(pos, (255, 255, 255)))
-                    self.godrays.append(Godrays(pos, length=1250, num_rays=12, lifespan=-1))
+
+                    self.godrays.append(Godrays(start_pos=pos,
+                                                direction=player.opposite_directions[player.direction],
+                                                num_rays=2))
+
+
                     self.player_has_collided = True
 
         elif not self.player_has_collided:
