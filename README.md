@@ -15,9 +15,11 @@
 ![](readme_supp/BorderCrash.gif)
 
 ## Description
-This project is a modern rendition of the classic Tron game, developed using Pygame. It features captivating visuals and introduces additional mechanics to enhance the gameplay experience. The highlight of this project is its dual AI approach: a custom-developed, manually coded AI designed for "human-like" play, and a NEAT (NeuroEvolution of Augmenting Topologies) algorithm implementation.
+This enhanced version of the classic Tron game, created using Pygame, places a significant emphasis on its sophisticated AI systems, particularly highlighting the implementation of the NEAT (NeuroEvolution of Augmenting Topologies) algorithm. The project features two distinct AI opponents: a manually coded AI and an AI based on NEAT.
 
-The manually coded AI provides a challenging yet intuitive opponent, mimicking human play style. On the other hand, the NEAT implementation explores the fascinating world of AI learning and evolution. Although the NEAT algorithm currently struggles to master Tron effectively, it offers an intriguing insight into AI development challenges.
+The manually programmed AI is designed to mimic human-like play, providing players with a challenging yet familiar experience. Its strategies and decision-making processes are crafted to resemble those of human players, adding a layer of intuitive gameplay.
+
+In contrast, the NEAT-based AI represents a foray into the realm of evolutionary AI and machine learning. This AI is a key feature of the project, showcasing the ongoing evolution and learning process of an AI within the Tron game environment. Although currently less proficient in the game, the NEAT AI offers an intriguing perspective on the complexities and potential of AI development in gaming, highlighting the project's focus on cutting-edge AI research and application.
 
 ## Features
 - **Engaging Visuals**: Enhanced graphics for a more immersive Tron experience.
@@ -32,6 +34,7 @@ The current implementation of the NEAT algorithm in this project faces significa
 - **Enhancing the NEAT Algorithm**: Focused efforts on getting the NEAT algorithm to a point of convergent behavior.
 - **Reinforcement Learning**: Implementing reinforcement learning techniques to further improve AI performance.
 - **UI Enhancements**: Adding more UI features to visualize the AI learning process and make the game more user-friendly.
+- **NEAT Customization GUI**: Introducing a user-friendly interface for adjusting NEAT settings, complete with multi-threading for real-time results and live statistics.
 
 ## Contact
 Email: christopherjthomaswork@gmail.com
