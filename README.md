@@ -1,5 +1,19 @@
 # Tron Game with AI and NEAT Implementation
 
+## Visuals
+
+### Training NEAT AI
+![](readme_supp/AIvsAITraining.gif)
+
+### Versus AI (Yellow)
+![](readme_supp/versusAI.gif)
+
+### Player vs Player Head On
+![](readme_supp/PvP%20and%20Effects.gif)
+
+### Border Crash
+![](readme_supp/BorderCrash.gif)
+
 ## Description
 This project is a modern rendition of the classic Tron game, developed using Pygame. It features captivating visuals and introduces additional mechanics to enhance the gameplay experience. The highlight of this project is its dual AI approach: a custom-developed, manually coded AI designed for "human-like" play, and a NEAT (NeuroEvolution of Augmenting Topologies) algorithm implementation.
 
