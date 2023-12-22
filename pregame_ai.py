@@ -40,13 +40,11 @@ class PregameAI(Pregame):
 
     def set_difficulty(self, difficulty):
         self.difficulty = difficulty
-        # Additional logic for difficulty, if needed
-        # Automatically transition to the next state if certain conditions are met
 
     def draw(self):
-        super().draw()  # Draw existing UI components
+        super().draw()
         for button in self.difficulty_buttons.values():
-            button.draw()  # Draw the new difficulty buttons
+            button.draw()
 
     def handle_mouse_motion(self, mouse_pos):
         super().handle_mouse_motion(mouse_pos)  # Handle existing mouse motion logic
