@@ -1,5 +1,11 @@
 # Tron Game with AI and NEAT Implementation
 
+## Installing
+
+1. Clone the repo: git clone https://github.com/cjtho/NEAT-Tron-Pygame
+2. Create a virtual environment (optional): python -m venv venv && source venv/bin/activate (Linux/Mac) or python -m venv venv && venv\Scripts\activate (Windows)
+3. Install dependencies: pip install -r requirements.txt
+
 ## Visuals
 
 ### Training NEAT AI
