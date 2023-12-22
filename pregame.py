@@ -1,125 +1,164 @@
+import colorsys
 import pygame
 from screen import Screen
+from generic_button import Button
+from colour_enum import Colour
+
+
+class PlayerTitles:
+    def __init__(self, screen, split_point, player_colours):
+        self.screen = screen
+        self.split_point = split_point
+        self.player_colours = player_colours
+
+    def draw(self):
+        font = pygame.font.Font(None, 36)
+        for i, colour in enumerate(self.player_colours.values(), start=1):
+            text_surface = font.render(f"Player {i}", True, colour)
+            text_rect = text_surface.get_rect(center=(self.screen.get_width() // 3 * i, self.screen.get_height() // 4))
+            self.screen.blit(text_surface, text_rect)
+
+
+class PlayerColourOptions:
+    def __init__(self, screen, split_point, player_colours):
+        self.screen = screen
+        self.split_point = split_point
+        self.player_colours = player_colours
+        self.colour_buttons = {1: [], 2: []}
+        self.init_colour_buttons()
+
+    def init_colour_buttons(self):
+        colour_size = 50
+        row_count, col_count = 2, 4
+        start_y = self.screen.get_height() // 2.25
+        colour_options = [
+            Colour.DARK_RED.value, Colour.DARK_GREEN.value, Colour.DARK_BLUE.value, Colour.DARK_YELLOW.value,
+            Colour.PINK.value, Colour.LIGHT_BLUE.value, Colour.PURPLE.value, Colour.GREY.value
+        ]
+
+        for player in [1, 2]:
+            center_x = self.screen.get_width() // 3 * player
+            for i, colour in enumerate(colour_options):
+                row, col = divmod(i, col_count)
+                rect = pygame.Rect(center_x + (col - 1.9) * (colour_size + 10), start_y + row * (colour_size + 10),
+                                   colour_size, colour_size)
+                button = Button(self.screen, rect, "", colour, self.lighten_colour(colour), Colour.BLACK.value,
+                                self.lighten_colour(colour))
+                self.colour_buttons[player].append(button)
+
+    def draw(self):
+        for button_list in self.colour_buttons.values():
+            for button in button_list:
+                button.draw()
+
+    @staticmethod
+    def lighten_colour(rgb, increase=0.3):
+        r, g, b = [x / 255.0 for x in rgb]
+        h, l, s = colorsys.rgb_to_hls(r, g, b)
+        l = min(1.0, l + increase)
+        r, g, b = colorsys.hls_to_rgb(h, l, s)
+        return int(r * 255), int(g * 255), int(b * 255)
 
 
 class Pregame(Screen):
 
     def __init__(self, screen, clock, state_manager, next_state):
         super().__init__(screen, clock, state_manager)
+        self.screen = screen
+        self.clock = clock
+        self.state_manager = state_manager
         self.next_state = next_state
-        self.screen.fill((0, 0, 0))
-
         self.game_speed = 1
-        self.split_point = self.screen.get_width() // 2  # Split point down the middle
+        self.split_point = self.screen.get_width() // 2
+        self.player_colours = {1: Colour.RED.value, 2: Colour.BLUE.value}
+        self.init_ui()
 
-        # Define colors
-        self.player_colours = {1: (255, 0, 0), 2: (0, 0, 255)}
-        self.player_colours_rects = {1: [], 2: []}
+    def init_ui(self):
+        self.player_titles = PlayerTitles(self.screen, self.split_point, self.player_colours)
+        self.player_colour_options = PlayerColourOptions(self.screen, self.split_point, self.player_colours)
+        self.init_buttons()
 
-        self.color_options = [(200, 0, 0), (0, 200, 0), (0, 0, 200), (200, 200, 0),
-                              (255, 0, 200), (0, 200, 255), (128, 0, 128), (128, 128, 128)]
-
-        # Player 1 color options
-        self.draw_color_options(
-            self.color_options,
-            (self.split_point // 2, self.screen.get_height() // 2),
-            player=1
-        )
-        # Player 2 color options
-        self.draw_color_options(
-            self.color_options,
-            (self.split_point + self.split_point // 2, self.screen.get_height() // 2),
-            player=2
-        )
-
-        # Button and slider properties
-        self.start_button_rect = pygame.Rect(self.split_point - 200, self.screen.get_height() - 75, 400, 50)
-        self.start_button_color = (255, 255, 255)
-        self.start_button_text = "START"
-
-        self.game_speed_slider_rect = pygame.Rect(self.split_point - 100, self.screen.get_height() - 125, 200, 20)
-        self.game_speed_slider_color = (255, 255, 255)
-        self.game_speed_percentage = 100  # Initial position of the slider (50%)
-
-    def draw_text(self, text, position, color):
-        font = pygame.font.Font(None, 36)
-        text_surface = font.render(text, True, color)
-        text_rect = text_surface.get_rect(center=position)
-        self.screen.blit(text_surface, text_rect)
-
-    def draw_color_options(self, color_options, position, player):
-        color_size = 50
-        row_count = 2
-        col_count = 4
-        for i, color in enumerate(color_options):
-            row, col = divmod(i, col_count)
-            rect = pygame.Rect(position[0] + (col - 1.9) * (color_size + 10),
-                               position[1] + row * (color_size + 10),
-                               color_size, color_size)
-            pygame.draw.rect(self.screen, color, rect)
-            self.player_colours_rects[player].append((rect, color))
-
-    def start_game(self):
-        data = {k: {"head_colour": val} for k, val in self.player_colours.items()}
-        colours = list(val for val in self.player_colours.values())
-        data = {"player_info": data, "game_speed": self.game_speed}
-        if len(colours) != len(set(colours)):
-            return  # unique colours enforced
-        self.state_manager.set_state(self.next_state, data)
+    def init_buttons(self):
+        self.game_speed_buttons = {
+            "SLOW": Button(self.screen, pygame.Rect(self.split_point - 200, self.screen.get_height() - 150, 120, 30),
+                           "SLOW", Colour.WHITE.value, Colour.GREY.value, Colour.BLACK.value,
+                           Colour.SELECTED_COLOR.value),
+            "NORMAL": Button(self.screen, pygame.Rect(self.split_point - 60, self.screen.get_height() - 150, 120, 30),
+                             "NORMAL", Colour.WHITE.value, Colour.GREY.value, Colour.BLACK.value,
+                             Colour.SELECTED_COLOR.value),
+            "FAST": Button(self.screen, pygame.Rect(self.split_point + 80, self.screen.get_height() - 150, 120, 30),
+                           "FAST", Colour.WHITE.value, Colour.GREY.value, Colour.BLACK.value,
+                           Colour.SELECTED_COLOR.value)
+        }
+        self.start_button = Button(self.screen,
+                                   pygame.Rect(self.split_point - 200, self.screen.get_height() - 75, 400, 50),
+                                   "START", Colour.WHITE.value, Colour.GREY.value, Colour.BLACK.value,
+                                   Colour.SELECTED_COLOR.value)
+        # init state
+        self.game_speed_buttons["NORMAL"].select(True)
+        self.set_game_speed("NORMAL")
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_pos = pygame.mouse.get_pos()
-            for player, rects in self.player_colours_rects.items():
-                for rect, color in rects:
-                    if rect.collidepoint(mouse_pos):
-                        self.player_colours[player] = color
-                        break
+            self.handle_mouse_click(pygame.mouse.get_pos())
+        elif event.type == pygame.MOUSEMOTION:
+            self.handle_mouse_motion(pygame.mouse.get_pos())
 
-            if self.start_button_rect.collidepoint(mouse_pos):
-                self.start_game()
+    def handle_mouse_click(self, mouse_pos):
+        if self.start_button.is_clicked(mouse_pos):
+            self.start_game()
 
-                # Check if the mouse is clicked on the slider
-            elif self.game_speed_slider_rect.collidepoint(mouse_pos):
-                # Adjust the game speed based on the slider position
-                slider_percentage = ((mouse_pos[0] - self.game_speed_slider_rect.left)
-                                     / self.game_speed_slider_rect.width)
-                self.game_speed_percentage = min(100, max(0, int(slider_percentage * 100)))
-                self.game_speed = self.game_speed_percentage / 100  # Scale to the desired range (0 to 2)
+        self.handle_game_speed_selection(mouse_pos)
+        self.handle_colour_selection(mouse_pos)
 
-    def draw(self):
-        white = (255, 255, 255)
-        black = (0, 0, 0)
+    def handle_game_speed_selection(self, mouse_pos):
+        for speed, button in self.game_speed_buttons.items():
+            if button.is_clicked(mouse_pos):
+                self.set_game_speed(speed)
+                for btn in self.game_speed_buttons.values():
+                    btn.select(False)
+                button.select(True)
+                break
 
-        # Player 1 setup
-        player1_rect = pygame.Rect(0, 0, self.split_point, self.screen.get_height())
-        pygame.draw.rect(self.screen, black, player1_rect)
-        self.draw_text("Player 1",
-                       (self.split_point // 2, self.screen.get_height() // 4),
-                       self.player_colours[1])
+    def handle_mouse_motion(self, mouse_pos):
+        for button in self.game_speed_buttons.values():
+            button.update_hover(mouse_pos)
+        self.start_button.update_hover(mouse_pos)
+        for player, buttons in self.player_colour_options.colour_buttons.items():
+            for button in buttons:
+                button.update_hover(mouse_pos)
 
-        # Player 2 setup
-        player2_rect = pygame.Rect(self.split_point, 0, self.split_point, self.screen.get_height())
-        pygame.draw.rect(self.screen, black, player2_rect)
-        self.draw_text("Player 2",
-                       (self.split_point + self.split_point // 2, self.screen.get_height() // 4),
-                       self.player_colours[2])
+    def set_game_speed(self, speed):
+        # probably should be tick rate modifications but meh
+        speed_map = {"FAST": [1], "NORMAL": [2, 3], "SLOW": [2]}
+        self.game_speed = speed_map.get(speed, 1)
 
-        # Redraw color squares
-        for player, rects in self.player_colours_rects.items():
-            for rect, color in rects:
-                pygame.draw.rect(self.screen, color, rect)
+    def handle_colour_selection(self, mouse_pos):
+        for player, buttons in self.player_colour_options.colour_buttons.items():
+            for button in buttons:
+                if button.is_clicked(mouse_pos):
+                    for btn in buttons:
+                        btn.select(False)
+                    button.select(True)
+                    self.player_colours[player] = button.base_colour
+                    break
 
-                # Draw START button
-                pygame.draw.rect(self.screen, self.start_button_color, self.start_button_rect)
-                self.draw_text(self.start_button_text, self.start_button_rect.center, (0, 0, 0))
-
-                # Draw game speed slider
-                pygame.draw.rect(self.screen, self.game_speed_slider_color, self.game_speed_slider_rect)
-                slider_position = self.game_speed_slider_rect.left + self.game_speed_slider_rect.width * (
-                        self.game_speed_percentage / 100)
-                slider_handle_rect = pygame.Rect(slider_position - 5, self.game_speed_slider_rect.top - 5, 10, 30)
-                pygame.draw.rect(self.screen, (255, 0, 0), slider_handle_rect)
+    def start_game(self):
+        player_info = {k: {"head_colour": val} for k, val in self.player_colours.items()}
+        if len(set(self.player_colours.values())) != len(self.player_colours):
+            return  # Ensure unique colours
+        data = {"player_info": player_info, "game_speed": self.game_speed}
+        self.state_manager.set_state(self.next_state, data)
 
     def update(self):
         pass
+
+    def draw(self):
+        self.screen.fill(Colour.BLACK.value)
+        self.player_titles.draw()
+        self.player_colour_options.draw()
+
+        for button in self.game_speed_buttons.values():
+            button.draw()
+
+        self.start_button.draw()

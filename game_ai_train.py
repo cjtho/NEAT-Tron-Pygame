@@ -232,7 +232,7 @@ class GameAITraining(Screen):
         near_path_color = self.check_near_path(player, player_group, game_logic)
         self.particle_effects.add_particle(head_x, head_y, player.head_colour)
         if near_path_color:
-            self.particle_effects.add_particle(head_x, head_y, near_path_color, near_path=True)
+            self.particle_effects.add_particle(head_x, head_y, near_path_color, boost=True)
         self.particle_effects.draw(self.screen)
 
     def check_near_path(self, player, player_group, game_logic):

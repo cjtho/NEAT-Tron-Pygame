@@ -5,11 +5,14 @@ import pygame
 
 
 class Particle:
-    def __init__(self, x, y, color, size, lifetime, x_vel, y_vel):
+    def __init__(self, x, y, colour, size, lifetime, x_vel, y_vel):
         self.x = x
         self.y = y
+        self.original_size = size
         self.size = size
-        self.color = color
+        self.original_colour = colour
+        self.colour = colour
+        self.original_lifetime = lifetime
         self.lifetime = lifetime
         self.x_vel = x_vel
         self.y_vel = y_vel
@@ -17,12 +20,15 @@ class Particle:
     def update(self):
         self.x += self.x_vel
         self.y += self.y_vel
-        self.size -= 0.1
+
+        t = self.lifetime / self.original_lifetime
+        self.size = t * self.original_size
+        self.colour = [t * c for c in self.original_colour]
+
         self.lifetime -= 1
-        self.color = [max(0, c - 5) for c in self.color]
 
     def draw(self, screen):
-        pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), int(self.size))
+        pygame.draw.circle(screen, self.colour, (int(self.x), int(self.y)), int(self.size))
 
 
 class Particles:
@@ -32,19 +38,18 @@ class Particles:
         self.velocity_range = velocity_range
         self.particles = []
 
-    def add_particle(self, x, y, colour, jitter=2, near_path=False):
+    def add_particle(self, x, y, colour, jitter=2, boost=False):
         size = random.randint(*self.size_range)
         lifetime = random.randint(*self.lifetime_range)
         x_vel = random.uniform(*self.velocity_range)
         y_vel = random.uniform(*self.velocity_range)
 
-        # Enhancements when near a path
-        if near_path:
-            size *= 1.5  # Increase size
-            lifetime += 10  # Increase lifetime
-            x_vel *= 1.5  # Increase velocity
+        if boost:
+            size *= 1.5
+            lifetime += 10
+            x_vel *= 1.5
             y_vel *= 1.5
-            colour = self.lighten_color(colour)  # Brighten color
+            colour = self.lighten_color(colour)
 
         angle = random.uniform(0, 2 * math.pi)
         radius = random.uniform(0, jitter)
@@ -70,5 +75,5 @@ class Particles:
     def update_particles(self):
         for particle in self.particles[:]:
             particle.update()
-            if particle.lifetime <= 0 or particle.size <= 0:
+            if particle.lifetime <= 0:
                 self.particles.remove(particle)

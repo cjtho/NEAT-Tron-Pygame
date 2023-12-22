@@ -2,25 +2,44 @@ import random
 
 
 class CustomAI:
-    def __init__(self, player, rows, cols):
+    def __init__(self, player, rows, cols, difficulty="Easy"):
         self.player = player
         self.rows = rows
         self.cols = cols
         self.padding = 2
-        self.reaction_time = 0.9  # essentially it's difficulty parameter
-        self.current_step = 0
-        self.reach_limit = 100
+        self.reaction_time = 0.90  # essentially it's difficulty parameter
+        self.follow_player_prob = 0.5
+        self.reach_limit = 1000
+        self.area_range = 5
+
+        self.implement_difficulty(difficulty)
         self.set_random_target()
 
-    def set_random_target(self, opponent_position=None):
-        area_range = 7  # Range for area around the opponent
+    def implement_difficulty(self, difficulty):
+        if difficulty == "Easy":
+            self.reaction_time = 0.8
+            self.follow_player_prob = 0.2
+            self.area_range = 9
+        elif difficulty == "Medium":
+            self.reaction_time = 0.9
+            self.follow_player_prob = 0.5
+            self.area_range = 7
+        elif difficulty == "Hard":
+            self.reaction_time = 0.95
+            self.follow_player_prob = 0.75
+            self.area_range = 5
+        elif difficulty == "Insane":
+            self.reaction_time = 0.99
+            self.follow_player_prob = 0.9
+            self.area_range = 3
 
-        if opponent_position and random.choice([True, False]):
+    def set_random_target(self, opponent_position=None):
+        if opponent_position and random.random() < self.follow_player_prob:
             # Set target within 10x10 area around the opponent
-            min_row, max_row = (max(self.padding, opponent_position[0] - area_range),
-                                min(self.rows - self.padding, opponent_position[0] + area_range))
-            min_col, max_col = (max(self.padding, opponent_position[1] - area_range),
-                                min(self.cols - self.padding, opponent_position[1] + area_range))
+            min_row, max_row = (max(self.padding, opponent_position[0] - self.area_range),
+                                min(self.rows - self.padding, opponent_position[0] + self.area_range))
+            min_col, max_col = (max(self.padding, opponent_position[1] - self.area_range),
+                                min(self.cols - self.padding, opponent_position[1] + self.area_range))
             self.target_location = (random.randint(min_row, max_row), random.randint(min_col, max_col))
         else:
             # Set target randomly anywhere in the grid
@@ -52,6 +71,7 @@ class CustomAI:
 
         if random.random() <= self.reaction_time:
             self.player.change_direction(direction)
+
         self.current_step += 1
 
     def get_optimal_directions(self, current_position):

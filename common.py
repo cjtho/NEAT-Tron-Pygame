@@ -19,8 +19,7 @@ class Common(Screen):
         self.player_group = PlayerGroup(default_data if pre_game_data is None else pre_game_data["player_info"])
         self.game_logic = GameLogic(self.player_group)
 
-        self.game_speed = int(1 / pre_game_data["game_speed"])
-
+        self.game_speed = pre_game_data["game_speed"]
         self.player_controls = {
             1:
                 {
@@ -106,7 +105,7 @@ class Common(Screen):
         if not self.game_logic.running:
             self.is_game_ended = True
             return
-        if self.iterations % self.game_speed == 0:
+        if any(self.iterations % speed == 0 for speed in self.game_speed):
             self.game_logic.update()
         self.iterations += 1
 
@@ -143,7 +142,6 @@ class Common(Screen):
                     self.godrays.append(Godrays(start_pos=pos,
                                                 direction=player.opposite_directions[player.direction],
                                                 num_rays=2))
-
 
                     self.player_has_collided = True
 
@@ -242,7 +240,7 @@ class Common(Screen):
         near_path_color = self.check_near_path(player)
         self.particle_effects.add_particle(head_x, head_y, player.head_colour)
         if near_path_color:
-            self.particle_effects.add_particle(head_x, head_y, near_path_color, near_path=True)
+            self.particle_effects.add_particle(head_x, head_y, near_path_color, boost=True)
         self.particle_effects.draw(self.screen)
 
         cycle_length = 100
