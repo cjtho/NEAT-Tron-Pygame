@@ -99,10 +99,13 @@ class Pregame(Screen):
         self.set_game_speed("NORMAL")
 
     def handle_event(self, event):
+        super().handle_event(event)
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.handle_mouse_click(pygame.mouse.get_pos())
         elif event.type == pygame.MOUSEMOTION:
             self.handle_mouse_motion(pygame.mouse.get_pos())
+        elif event.type == pygame.KEYDOWN:
+            self.handle_key_down(event.key)
 
     def handle_mouse_click(self, mouse_pos):
         if self.start_button.is_clicked(mouse_pos):
@@ -120,19 +123,6 @@ class Pregame(Screen):
                 button.select(True)
                 break
 
-    def handle_mouse_motion(self, mouse_pos):
-        for button in self.game_speed_buttons.values():
-            button.update_hover(mouse_pos)
-        self.start_button.update_hover(mouse_pos)
-        for player, buttons in self.player_colour_options.colour_buttons.items():
-            for button in buttons:
-                button.update_hover(mouse_pos)
-
-    def set_game_speed(self, speed):
-        # probably should be tick rate modifications but meh
-        speed_map = {"FAST": [1], "NORMAL": [2, 3], "SLOW": [2]}
-        self.game_speed = speed_map.get(speed, 1)
-
     def handle_colour_selection(self, mouse_pos):
         for player, buttons in self.player_colour_options.colour_buttons.items():
             for button in buttons:
@@ -142,6 +132,25 @@ class Pregame(Screen):
                     button.select(True)
                     self.player_colours[player] = button.base_colour
                     break
+
+    def handle_mouse_motion(self, mouse_pos):
+        for button in self.game_speed_buttons.values():
+            button.update_hover(mouse_pos)
+        self.start_button.update_hover(mouse_pos)
+        for player, buttons in self.player_colour_options.colour_buttons.items():
+            for button in buttons:
+                button.update_hover(mouse_pos)
+
+    def handle_key_down(self, key):
+        if key == pygame.K_SPACE:
+            self.start_game()
+        elif key == pygame.K_ESCAPE:
+            self.state_manager.set_state("menu")
+
+    def set_game_speed(self, speed):
+        # probably should be tick rate modifications but meh
+        speed_map = {"FAST": [1], "NORMAL": [2, 3], "SLOW": [2]}
+        self.game_speed = speed_map.get(speed, 1)
 
     def start_game(self):
         player_info = {k: {"head_colour": val} for k, val in self.player_colours.items()}
