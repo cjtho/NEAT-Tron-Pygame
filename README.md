@@ -41,6 +41,3 @@ The current implementation of the NEAT algorithm in this project faces significa
 - **Reinforcement Learning**: Implementing reinforcement learning techniques to further improve AI performance.
 - **UI Enhancements**: Adding more UI features to visualize the AI learning process and make the game more user-friendly.
 - **NEAT Customization GUI**: Introducing a user-friendly interface for adjusting NEAT settings, complete with multi-threading for real-time results and live statistics.
-
-## Contact
-Email: christopherjthomaswork@gmail.com
